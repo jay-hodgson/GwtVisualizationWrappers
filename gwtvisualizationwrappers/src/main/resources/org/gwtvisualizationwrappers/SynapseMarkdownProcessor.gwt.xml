@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<module rename-to="SynapseMarkdownProcessor">
+    <inherits name="com.google.gwt.user.User"/>
+    <inherits name="com.google.gwt.user.UserAgent"/>
+    <inherits name="com.google.gwt.i18n.I18N"/>
+	
+	<entry-point class="org.gwtvisualizationwrappers.client.markdown.SynapseMarkdownProcessorEntryPoint" />
+	
+    <source path="client/markdown" />
+    <source path="shared" />
+</module>
