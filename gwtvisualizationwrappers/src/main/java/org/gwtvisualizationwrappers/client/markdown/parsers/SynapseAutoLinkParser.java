@@ -2,8 +2,10 @@ package org.gwtvisualizationwrappers.client.markdown.parsers;
 
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 
+import com.google.gwt.regexp.shared.RegExp;
+
 public class SynapseAutoLinkParser extends BasicMarkdownElementParser {
-	Pattern p = Pattern.compile(MarkdownRegExConstants.LINK_SYNAPSE);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.LINK_SYNAPSE);
 	
 	@Override
 	public void processLine(MarkdownElements line) {

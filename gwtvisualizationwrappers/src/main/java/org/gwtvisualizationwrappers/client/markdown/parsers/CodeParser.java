@@ -4,9 +4,12 @@ import java.util.List;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
+
 
 public class CodeParser extends BasicMarkdownElementParser  {
-	Pattern p = Pattern.compile(MarkdownRegExConstants.FENCE_CODE_BLOCK_REGEX);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.FENCE_CODE_BLOCK_REGEX);
 	boolean isInCodeBlock, isFirstCodeLine;
 	
 	
@@ -18,8 +21,8 @@ public class CodeParser extends BasicMarkdownElementParser  {
 
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m = p.matcher(line.getMarkdown());
-		if (m.matches()) {
+		MatchResult m = p.exec(line.getMarkdown());
+		if (m != null) {
 			if (!isInCodeBlock) {
 				//starting code block
 				isInCodeBlock = true;
@@ -27,8 +30,8 @@ public class CodeParser extends BasicMarkdownElementParser  {
 				StringBuilder sb = new StringBuilder();
 				sb.append(ServerMarkdownUtils.START_PRE_CODE);
 				String codeCssClass = null;
-				if (m.groupCount() == 2)
-					codeCssClass = m.group(2).toLowerCase();
+				if (m.getGroupCount() == 2)
+					codeCssClass = m.getGroup(2).toLowerCase();
 				if (codeCssClass == null || codeCssClass.trim().length() == 0) {
 					codeCssClass = ServerMarkdownUtils.DEFAULT_CODE_CSS_CLASS;
 				}
@@ -42,7 +45,7 @@ public class CodeParser extends BasicMarkdownElementParser  {
 				isInCodeBlock = false;
 			}
 			//remove all fenced code blocks from the markdown, just set to the prefix group
-			line.updateMarkdown(m.group(1));
+			line.updateMarkdown(m.getGroup(1));
 		}
 		else {
 			if (isInCodeBlock && !isFirstCodeLine)

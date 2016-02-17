@@ -6,9 +6,11 @@ import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 
 public class CodeSpanParser extends BasicMarkdownElementParser {
-	Pattern p1 = Pattern.compile(MarkdownRegExConstants.CODE_SPAN_REGEX);;
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.CODE_SPAN_REGEX, MarkdownRegExConstants.GLOBAL);
 	MarkdownExtractor extractor;
 
 	@Override
@@ -22,19 +24,24 @@ public class CodeSpanParser extends BasicMarkdownElementParser {
 	
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m = p1.matcher(line.getMarkdown());
+		p1.setLastIndex(0);
+		String md = line.getMarkdown();
+		MatchResult m = p1.exec(md);
 		StringBuffer sb = new StringBuffer();
-		while(m.find()) {
+		int index = 0;
+		while(m != null) {
+			sb.append(md.substring(index, m.getIndex()));
+			index = ServerMarkdownUtils.indexAfterMatch(m);
 			StringBuilder html = new StringBuilder();
 			html.append("<code>");
-			html.append(m.group(2));
+			html.append(m.getGroup(2));
 			html.append("</code>");
 			extractor.putContainerIdToContent(getCurrentDivID(), html.toString());
-			
 			String containerElement = extractor.getNewElementStart(getCurrentDivID()) + extractor.getContainerElementEnd();
-			m.appendReplacement(sb, containerElement);
+			sb.append(containerElement);
+			m = p1.exec(line.getMarkdown());
 		}
-		m.appendTail(sb);
+		sb.append(md.substring(index));
 		line.updateMarkdown(sb.toString());
 	}
 	

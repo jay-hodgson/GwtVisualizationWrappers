@@ -5,9 +5,11 @@ import java.util.Scanner;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
+import com.google.gwt.regexp.shared.RegExp;
+
 public class RowColumnParser extends BasicMarkdownElementParser {
-	Pattern rowPattern = Pattern.compile(MarkdownRegExConstants.ROW_REGEX);
-	Pattern columnPattern = Pattern.compile(MarkdownRegExConstants.COLUMN_REGEX);
+	RegExp rowPattern = RegExp.compile(MarkdownRegExConstants.ROW_REGEX);
+	RegExp columnPattern = RegExp.compile(MarkdownRegExConstants.COLUMN_REGEX);
 	private boolean isInRow;
 	private boolean isInColumn;
 	

@@ -5,11 +5,15 @@ import java.util.List;
 
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
+import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 import org.gwtvisualizationwrappers.client.markdown.utils.WidgetEncodingUtil;
+
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 
 
 public class ReferenceParser extends BasicMarkdownElementParser {
-	Pattern p1= Pattern.compile(MarkdownRegExConstants.REFERENCE_REGEX);
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.REFERENCE_REGEX, MarkdownRegExConstants.GLOBAL);
 	ArrayList<String> footnotes;
 	List<MarkdownElementParser> parsersOnCompletion;
 	int footnoteNumber;
@@ -23,16 +27,20 @@ public class ReferenceParser extends BasicMarkdownElementParser {
 
 	@Override
 	public void processLine(MarkdownElements line) {
+		p1.setLastIndex(0);
 		String input = line.getMarkdown();
-		Matcher m = p1.matcher(input);
+		MatchResult m = p1.exec(input);
 		StringBuffer sb = new StringBuffer();
-		while(m.find()) {
+		int index = 0;
+		while(m != null) {
+			sb.append(input.substring(index, m.getIndex()));
+			index = ServerMarkdownUtils.indexAfterMatch(m);
 			//Expression has 4 groupings (2 parameter/value pairs.)
 			//Store the reference text
 			for(int i = 1; i < 4; i += 2) {
-				String param = input.substring(m.start(i), m.end(i));
+				String param = m.getGroup(i);
 				if(param.contains("text")) {
-					footnotes.add(input.substring(m.start(i + 1), m.end(i + 1)));
+					footnotes.add(m.getGroup(i+1));
 				}
 			}
 			
@@ -44,12 +52,12 @@ public class ReferenceParser extends BasicMarkdownElementParser {
 			String referenceId = WidgetConstants.REFERENCE_ID_WIDGET_PREFIX + footnoteNumber;
 			String footnoteParameter = WidgetConstants.REFERENCE_FOOTNOTE_KEY + "=" + footnoteNumber;
 			
-			String updated = "<span id=\"" + referenceId + "\">&nbsp;</span>" + input.substring(m.start(), m.end() - 1) + "&amp;" + footnoteParameter + "}";
-			updated = Matcher.quoteReplacement(updated);	//Escapes the replacement string for appendReplacement
-			m.appendReplacement(sb, updated);
+			String updated = "<span id=\"" + referenceId + "\">&nbsp;</span>" + m.getGroup(0) + "&amp;" + footnoteParameter + "}";
+			sb.append(updated);
 			footnoteNumber++;
+			m = p1.exec(input);
 		}
-		m.appendTail(sb);
+		sb.append(input.substring(index));
 		line.updateMarkdown(sb.toString());
 	}
 	

@@ -4,9 +4,12 @@ import java.util.List;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
+
 public class BlockQuoteParser extends BasicMarkdownElementParser {
-	Pattern p1 = Pattern.compile(MarkdownRegExConstants.BLOCK_QUOTE_REGEX, Pattern.DOTALL);;
-	Pattern p2 = Pattern.compile(MarkdownRegExConstants.FENCE_CODE_BLOCK_REGEX, Pattern.DOTALL);
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.BLOCK_QUOTE_REGEX);
+	RegExp p2 = RegExp.compile(MarkdownRegExConstants.FENCE_CODE_BLOCK_REGEX);
 	boolean inBlockQuote;
 	
 	@Override
@@ -16,9 +19,9 @@ public class BlockQuoteParser extends BasicMarkdownElementParser {
 
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m = p1.matcher(line.getMarkdown());
-		Matcher codeMatcher = p2.matcher(line.getMarkdown());
-		if (m.matches()) {
+		MatchResult m = p1.exec(line.getMarkdown());
+		
+		if (m != null) {
 			if (!inBlockQuote) {
 				//starting block quote
 				inBlockQuote = true;
@@ -27,10 +30,10 @@ public class BlockQuoteParser extends BasicMarkdownElementParser {
 			//modify the markdown and preserve leading space to determine depth of list items
 			//do not preserve any space following ">" if this is a code block fence
 			StringBuilder sb = new StringBuilder();
-			if(!codeMatcher.matches()) {
-				sb.append(m.group(3));
+			if(!p2.test(line.getMarkdown())) {
+				sb.append(m.getGroup(3));
 			}
-			sb.append(m.group(4));
+			sb.append(m.getGroup(4));
 			line.updateMarkdown(sb.toString());
 		}
 		else {

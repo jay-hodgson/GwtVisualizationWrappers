@@ -9,9 +9,10 @@ import org.gwtvisualizationwrappers.client.markdown.utils.SharedMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.regexp.shared.RegExp;
 
 public class SynapseMarkdownWidgetParser extends BasicMarkdownElementParser {
-	Pattern p= Pattern.compile(MarkdownRegExConstants.SYNAPSE_MARKDOWN_WIDGET_REGEX, Pattern.CASE_INSENSITIVE);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.SYNAPSE_MARKDOWN_WIDGET_REGEX, MarkdownRegExConstants.CASE_INSENSITIVE);
 	MarkdownExtractor extractor;
 	
 	@Override

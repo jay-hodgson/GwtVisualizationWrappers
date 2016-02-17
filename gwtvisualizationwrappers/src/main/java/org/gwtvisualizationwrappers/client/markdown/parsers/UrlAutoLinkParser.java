@@ -7,10 +7,11 @@ import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.RegExp;
 
 
 public class UrlAutoLinkParser extends BasicMarkdownElementParser {
-	Pattern p = Pattern.compile(MarkdownRegExConstants.LINK_URL);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.LINK_URL);
 	MarkdownExtractor extractor;
 
 	@Override

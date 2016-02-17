@@ -6,10 +6,12 @@ import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 
 public class MathParser extends BasicMarkdownElementParser  {
-	Pattern p1 = Pattern.compile(MarkdownRegExConstants.FENCE_MATH_BLOCK_REGEX);
-	Pattern p2 = Pattern.compile(MarkdownRegExConstants.MATH_SPAN_REGEX);
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.FENCE_MATH_BLOCK_REGEX);
+	RegExp p2 = RegExp.compile(MarkdownRegExConstants.MATH_SPAN_REGEX, MarkdownRegExConstants.GLOBAL);
 	
 	MarkdownExtractor extractor;
 	boolean isInMathBlock, isFirstMathLine;
@@ -27,10 +29,10 @@ public class MathParser extends BasicMarkdownElementParser  {
 	
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m;
+		MatchResult m;
 		//math block
-		m = p1.matcher(line.getMarkdown());
-		if (m.matches()) {
+		m = p1.exec(line.getMarkdown());
+		if (m != null) {
 			if (!isInMathBlock) {
 				//starting math block
 				isInMathBlock = true;
@@ -43,7 +45,7 @@ public class MathParser extends BasicMarkdownElementParser  {
 				isInMathBlock = false;
 			}
 			//remove all fenced blocks from the markdown, just set to the prefix group
-			line.updateMarkdown(m.group(1));
+			line.updateMarkdown(m.getGroup(1));
 		}
 		else {
 			if (isInMathBlock) {
@@ -62,16 +64,20 @@ public class MathParser extends BasicMarkdownElementParser  {
 	}
 
 	private void processMathSpan(MarkdownElements line) {
-		Matcher m = p2.matcher(line.getMarkdown());
+		p2.setLastIndex(0);
+		String md = line.getMarkdown();
+		MatchResult m = p2.exec(md);
 		StringBuffer sb = new StringBuffer();
-		while(m.find()) {
-			//leave containers to filled in on completeParse()
-			extractor.putContainerIdToContent(getCurrentDivID(), m.group(2));
-			
+		int index = 0;
+		while(m != null) {
+			sb.append(md.substring(index, m.getIndex()));
+			index = ServerMarkdownUtils.indexAfterMatch(m);
+			extractor.putContainerIdToContent(getCurrentDivID(), m.getGroup(2));
 			String containerElement = extractor.getNewElementStart(getCurrentDivID()) + extractor.getContainerElementEnd();
-			m.appendReplacement(sb, containerElement);
+			sb.append(containerElement);
+			m = p1.exec(line.getMarkdown());
 		}
-		m.appendTail(sb);
+		sb.append(md.substring(index));
 		line.updateMarkdown(sb.toString());
 	}
 	

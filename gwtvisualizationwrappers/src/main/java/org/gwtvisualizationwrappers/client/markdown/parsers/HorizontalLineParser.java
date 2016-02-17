@@ -2,15 +2,21 @@ package org.gwtvisualizationwrappers.client.markdown.parsers;
 
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
+
 
 public class HorizontalLineParser extends BasicMarkdownElementParser  {
-	Pattern p1 = Pattern.compile(MarkdownRegExConstants.HR_REGEX1);
-	Pattern p2 = Pattern.compile(MarkdownRegExConstants.HR_REGEX2);
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.HR_REGEX1);
+	RegExp p2 = RegExp.compile(MarkdownRegExConstants.HR_REGEX2);
 
 	@Override
 	public void processLine(MarkdownElements line) {
 		String testLine = line.getMarkdown().replaceAll(" ", "");
-		boolean isHr = p1.matcher(testLine).matches() || p2.matcher(testLine).matches();
+		MatchResult m1 = p1.exec(testLine);
+		MatchResult m2 = p2.exec(testLine);
+		
+		boolean isHr = m1 != null || m2 != null;
 		if (isHr) {
 			//output hr
 			line.updateMarkdown("<hr>");

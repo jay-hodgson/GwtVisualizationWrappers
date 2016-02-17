@@ -12,6 +12,7 @@ import org.gwtvisualizationwrappers.client.markdown.parsers.TableParser;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NodeList;
+import com.google.gwt.regexp.shared.MatchResult;
 
 public class ServerMarkdownUtils {
 	public static final String START_PRE_CODE = "<pre><code";
@@ -193,5 +194,11 @@ public class ServerMarkdownUtils {
 		return "<a target=\"_blank\" class=\"link\" href=\"" + url.trim() + "\">" + url+ "</a>";
 	}
 
+	public static int indexAfterMatch(MatchResult m) {
+		if (m == null) {
+			return -1;
+		}
+		return  m.getIndex() + m.getGroup(0).length();
+	}
 	public static final String DEFAULT_CODE_CSS_CLASS = "no-highlight";
 }

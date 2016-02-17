@@ -5,6 +5,9 @@ import java.util.Stack;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
+
 /**
  * One of the more complicated parsers.  Needs to have a stack to support nested lists.
  * needs to remember the level (how deep is the nested list), the list type (ordered or unordered), and (if ordered) the current number)
@@ -12,11 +15,11 @@ import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
  *
  */
 public class ListParser extends BasicMarkdownElementParser  {
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.ORDERED_LIST_REGEX);
+	RegExp p2 = RegExp.compile(MarkdownRegExConstants.UNORDERED_LIST_REGEX);
+	RegExp p3 = RegExp.compile(MarkdownRegExConstants.INDENTED_REGEX);
+	RegExp p4 = RegExp.compile(MarkdownRegExConstants.BLOCK_QUOTE_REGEX);
 	
-	Pattern p1= Pattern.compile(MarkdownRegExConstants.ORDERED_LIST_REGEX, Pattern.DOTALL);
-	Pattern p2 = Pattern.compile(MarkdownRegExConstants.UNORDERED_LIST_REGEX, Pattern.DOTALL);
-	Pattern p3 = Pattern.compile(MarkdownRegExConstants.INDENTED_REGEX, Pattern.DOTALL);
-	Pattern p4 = Pattern.compile(MarkdownRegExConstants.BLOCK_QUOTE_REGEX, Pattern.DOTALL);;
 	Stack<MarkdownList> stack;
 	boolean hasSeenBlockQuote;
 	boolean preserveForBlockQuoteParser;
@@ -30,13 +33,13 @@ public class ListParser extends BasicMarkdownElementParser  {
 
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m1 = p1.matcher(line.getMarkdown());
-		Matcher m2 = p2.matcher(line.getMarkdown());
-		Matcher m3 = p3.matcher(line.getMarkdown());
-		Matcher m4 = p4.matcher(line.getMarkdown());
-	
-		boolean isOrderedList = m1.matches();
-		boolean isUnorderedList = m2.matches();
+		MatchResult m1 = p1.exec(line.getMarkdown());
+		MatchResult m2 = p2.exec(line.getMarkdown());
+		MatchResult m3 = p3.exec(line.getMarkdown());
+		MatchResult m4 = p4.exec(line.getMarkdown());
+		
+		boolean isOrderedList = m1 != null;
+		boolean isUnorderedList = m2 != null;
 
 		if (isOrderedList) {
 			getListItem(line, m1, true, m4);
@@ -46,15 +49,14 @@ public class ListParser extends BasicMarkdownElementParser  {
 		} 
 		else if (isInMarkdownElement()) {
 			//this is not a list item
-			m3.matches();
-			String spaces = m3.group(1);
+			String spaces = m3.getGroup(1);
 			int depth = spaces.length();
-			String value = m3.group(2);
+			String value = m3.getGroup(2);
 			
-			boolean isInBlockQuote = m4.matches();
+			boolean isInBlockQuote = m4 != null;
 			if(isInBlockQuote) {
 	        	depth--;						//Account for leading ">" blockquote character
-	        	value = m4.group(2) + value; 	//Prepend original prefix again for blockquote parser
+	        	value = m4.getGroup(2) + value; 	//Prepend original prefix again for blockquote parser
 	        }
 			
 			checkForGreaterDepth(line, depth);
@@ -76,19 +78,19 @@ public class ListParser extends BasicMarkdownElementParser  {
 		}
 	}
 	
-	public void getListItem(MarkdownElements line, Matcher m, boolean isOrderedList, Matcher blockquoteMatcher) {
+	public void getListItem(MarkdownElements line, MatchResult m, boolean isOrderedList, MatchResult blockquoteMatcher) {
 		//looks like a list item
-		String prefix = m.group(1);
+		String prefix = m.getGroup(1);
         int depth = prefix.length();
-        String symbol = m.group(2);
-        String value = m.group(4);
+        String symbol = m.getGroup(2);
+        String value = m.getGroup(4);
 
-        boolean isInBlockQuote = blockquoteMatcher.matches();
+        boolean isInBlockQuote = blockquoteMatcher != null;
         if(isInBlockQuote) {    
         	if(hasSeenBlockQuote) {
         		//We're in the middle of a blockquote, so preserve
         		//the ">" character for blockquote parser
-        		value = blockquoteMatcher.group(2) + value;
+        		value = blockquoteMatcher.getGroup(2) + value;
         		preserveForBlockQuoteParser = false;
         	} else {
         		//The blockquote tag has not been made/this list item is starting the blockquote

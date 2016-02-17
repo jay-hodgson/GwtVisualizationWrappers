@@ -6,9 +6,11 @@ import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 
 public class DoiAutoLinkParser extends BasicMarkdownElementParser {
-	Pattern p = Pattern.compile(MarkdownRegExConstants.LINK_DOI);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.LINK_DOI, MarkdownRegExConstants.GLOBAL);
 	//SWC-1883: need to protect the doi output
 	MarkdownExtractor extractor;
 	
@@ -19,17 +21,22 @@ public class DoiAutoLinkParser extends BasicMarkdownElementParser {
 	
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m = p.matcher(line.getMarkdown());
+		p.setLastIndex(0);
+		String md = line.getMarkdown();
+		MatchResult m = p.exec(md);
 		StringBuffer sb = new StringBuffer();
-		while(m.find()) {
-			String updated = "<a target=\"_blank\" class=\"link\" href=\"http://dx.doi.org/" + m.group(1) + "\">" + m.group(0) +"</a>";
-			
+		int index = 0;
+		while(m != null) {
+			sb.append(md.substring(index, m.getIndex()));
+			index = ServerMarkdownUtils.indexAfterMatch(m);
+			String updated = "<a target=\"_blank\" class=\"link\" href=\"http://dx.doi.org/" + m.getGroup(1) + "\">" + m.getGroup(0) +"</a>";
 			extractor.putContainerIdToContent(getCurrentDivID(), updated);
-			
 			String containerElement = extractor.getNewElementStart(getCurrentDivID()) + extractor.getContainerElementEnd();
-			m.appendReplacement(sb, containerElement);
+			sb.append(containerElement);
+			m = p.exec(line.getMarkdown());
 		}
-		m.appendTail(sb);
+		sb.append(md.substring(index));
+		
 		line.updateMarkdown(sb.toString());
 	}
 	

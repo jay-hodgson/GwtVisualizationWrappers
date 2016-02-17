@@ -6,13 +6,16 @@ import java.util.List;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 
+import com.google.gwt.regexp.shared.RegExp;
+
 public class TableParser extends BasicMarkdownElementParser {
 	public static final String TABLE_END_HTML = "</tbody></table></div>";
 	public static final String TABLE_START_HTML = "<div class=\"overflow-auto\"><table id=\"";
-	Pattern start = Pattern.compile(MarkdownRegExConstants.TABLE_START_REGEX);
-	Pattern p = Pattern.compile(MarkdownRegExConstants.TABLE_REGEX, Pattern.DOTALL);;
-	Pattern end = Pattern.compile(MarkdownRegExConstants.TABLE_END_REGEX);
-	Pattern headerBorder = Pattern.compile(MarkdownRegExConstants.TABLE_HEADER_BORDER_REGEX);
+	RegExp start = RegExp.compile(MarkdownRegExConstants.TABLE_START_REGEX);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.TABLE_REGEX);
+	RegExp end = RegExp.compile(MarkdownRegExConstants.TABLE_END_REGEX);
+	RegExp headerBorder = RegExp.compile(MarkdownRegExConstants.TABLE_HEADER_BORDER_REGEX);
+	
 	boolean hasTags; 			//Are we creating a fenced table versus a table with just column separated by pipes
 	boolean shortStyle;			//Does this table need to limit its height
 	boolean isInTable;			//Have we started/are we in the middle of creating a table

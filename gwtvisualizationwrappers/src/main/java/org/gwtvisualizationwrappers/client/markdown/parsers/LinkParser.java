@@ -4,14 +4,15 @@ import java.util.List;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
-import org.gwtvisualizationwrappers.client.markdown.utils.SharedMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 
 public class LinkParser extends BasicMarkdownElementParser  {
-	Pattern p1= Pattern.compile(MarkdownRegExConstants.LINK_REGEX, Pattern.DOTALL);
-	Pattern protocol = Pattern.compile(MarkdownRegExConstants.LINK_URL_PROTOCOL, Pattern.DOTALL);
-	Pattern synapseIdPattern = Pattern.compile(MarkdownRegExConstants.LINK_SYNAPSE);
+	RegExp p1 = RegExp.compile(MarkdownRegExConstants.LINK_REGEX, MarkdownRegExConstants.GLOBAL);
+	RegExp protocol = RegExp.compile(MarkdownRegExConstants.LINK_URL_PROTOCOL);
+	RegExp synapseIdPattern = RegExp.compile(MarkdownRegExConstants.LINK_SYNAPSE);
 	
 	MarkdownExtractor extractor;
 	MarkdownElementParser widgetParser;
@@ -36,30 +37,34 @@ public class LinkParser extends BasicMarkdownElementParser  {
 
 	@Override
 	public void processLine(MarkdownElements line) {
-		String input = line.getMarkdown();
-		Matcher m = p1.matcher(input);
+		p1.setLastIndex(0);
+		String md = line.getMarkdown();
+		MatchResult m = p1.exec(md);
 		StringBuffer sb = new StringBuffer();
-		while(m.find()) {
-			String text = input.substring(m.start(2), m.end(2));
-			String url = input.substring(m.start(3), m.end(3));
-			StringBuilder updated = new StringBuilder();
+		int index = 0;
+		while(m != null) {
+			sb.append(md.substring(index, m.getIndex()));
+			index = ServerMarkdownUtils.indexAfterMatch(m);
 			
+			String text = m.getGroup(2);
+			String url = m.getGroup(3);
+			StringBuilder updated = new StringBuilder();
 			//If the "url" targets a bookmarked element in the page, replace it with widget syntax 
 			//for the renderer to attach a handler
 			String testUrl = url.toLowerCase();
 			//is this a synapse id?
-			Matcher synapseIdMatcher = synapseIdPattern.matcher(testUrl);
-			if(synapseIdMatcher.find()) {
+			MatchResult synapseIdMatcher = synapseIdPattern.exec(testUrl);
+			if(synapseIdMatcher != null) {
 				//is there a version defined?
 				String versionString = "";
-				if (synapseIdMatcher.group(2) != null && synapseIdMatcher.group(2).trim().length() > 0) {
-					versionString = "/version/" + synapseIdMatcher.group(2);
+				if (synapseIdMatcher.getGroup(2) != null && synapseIdMatcher.getGroup(2).trim().length() > 0) {
+					versionString = "/version/" + synapseIdMatcher.getGroup(2);
 				}
-				url = "#!Synapse:" + synapseIdMatcher.group(1) + versionString;
+				url = "#!Synapse:" + synapseIdMatcher.getGroup(1) + versionString;
 			} else {
 				//Check for incomplete urls (i.e. urls starting without http/ftp/file/#)
-				Matcher protocolMatcher = protocol.matcher(testUrl);
-				if(!protocolMatcher.find()) {
+				MatchResult protocolMatcher = protocol.exec(testUrl);
+				if(protocolMatcher != null) {
 					if (!testUrl.startsWith("#"))
 						url = WidgetConstants.URL_PROTOCOL + url; 
 					else {
@@ -80,10 +85,11 @@ public class LinkParser extends BasicMarkdownElementParser  {
 			updated.append(extractor.getContainerElementStart() + getCurrentDivID());
 			updated.append("\">" + extractor.getContainerElementEnd());
 			
-			//Escape the replacement string for bookmarks' widget syntax
-			m.appendReplacement(sb, Matcher.quoteReplacement(updated.toString()));
+			sb.append(updated.toString());
+			m = p1.exec(line.getMarkdown());
 		}
-		m.appendTail(sb);
+		sb.append(md.substring(index));
+		
 		line.updateMarkdown(sb.toString());
 		//Check for new bookmark widget
 		widgetParser.processLine(line);

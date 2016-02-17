@@ -10,6 +10,9 @@ import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
  */
 public class MarkdownRegExConstants {
 
+	public static final String CASE_INSENSITIVE = "i"; //Perform case-insensitive matching
+	public static final String GLOBAL = "g"; //Perform a global match (find all matches rather than stopping after the first match)
+	public static final String MULTILINE = "m";  //Perform multiline matching
 	/**
 	 * Beginning of the line, and the blockquote or whitespace characters zero or more times
 	 */
@@ -35,7 +38,7 @@ public class MarkdownRegExConstants {
 	 * 
 	 * Beginning of the line, optional whitespace, blockquote character '>', whitespace, then the text
 	 */
-	public static final String BLOCK_QUOTE_REGEX = "(^\\s*(>(\\s?))(.*))";
+	public static final String BLOCK_QUOTE_REGEX = "(^\\s*(>(\\s?))([\\s\\S]*))";
 	
 	/**
 	 * Recognizes example input:
@@ -88,7 +91,7 @@ public class MarkdownRegExConstants {
 	 * Recognized example input:
 	 * ### A h3 Heading
 	 */
-	public static final String HEADING_REGEX = PREFIX_GROUP + "(#{1,6})\\s*(.*)";
+	public static final String HEADING_REGEX = PREFIX_GROUP + "(#{1,6})\\s*([\\s\\S]*)";
 
 	/**
 	 * Recognized example input:
@@ -107,7 +110,7 @@ public class MarkdownRegExConstants {
 	 * Recognized example input:
 	 * Column 1 | Column 2 | Column 3
 	 */
-	public static final String TABLE_REGEX = "(.+[|]{1}.*)+";
+	public static final String TABLE_REGEX = "([\\s\\S]+[|]{1}[\\s\\S]*)+";
 
 	/**
 	 * Recognized example input:
@@ -154,7 +157,7 @@ public class MarkdownRegExConstants {
 	 * No starting whitespace or
 	 * 		Starting whitespace
 	 */
-	public static final String INDENTED_REGEX = PREFIX_GROUP + "(.*)";
+	public static final String INDENTED_REGEX = PREFIX_GROUP + "([\\s\\S]*)";
 	
 	/**
 	 * Recognized example input:
@@ -166,7 +169,7 @@ public class MarkdownRegExConstants {
 	 * Recognized example input:
 	 * [An Example](http://www.example.com/)
 	 */
-	public static final String LINK_REGEX =	"(\\[([^\\[\\]]*?)\\]\\([ \\t]*<?(.*?)>?\\))";
+	public static final String LINK_REGEX =	"(\\[([^\\[\\]]*?)\\]\\([ \\t]*<?([\\s\\S]*?)>?\\))";
 	
 	/**
 	 * Recognized example input:
@@ -197,7 +200,7 @@ public class MarkdownRegExConstants {
 	 * Recognized example input:
 	 * 1. First Item
 	 */
-	public static final String ORDERED_LIST_REGEX = PREFIX_GROUP + "(\\d+)[.](\\s+)(.+)";
+	public static final String ORDERED_LIST_REGEX = PREFIX_GROUP + "(\\d+)[.](\\s+)([\\s\\S]+)";
 	
 	/**
 	 * Recognized example input:
@@ -252,7 +255,7 @@ public class MarkdownRegExConstants {
 	 * Recognized example input:
 	 * * First Item
 	 */
-	public static final String UNORDERED_LIST_REGEX = PREFIX_GROUP + "([-+*])(\\s+)(.+)";
+	public static final String UNORDERED_LIST_REGEX = PREFIX_GROUP + "([-+*])(\\s+)([\\s\\S]+)";
 	
 	
 	public static final String NEWLINE_REGEX = "([\n])";
