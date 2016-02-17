@@ -116,9 +116,9 @@ public class SynapseMarkdownProcessor {
 	 * @param panel
 	 * @throws IOException 
 	 */
-	public Widget markdown2Html(String markdown, String suffix, String clientHostString) throws IOException {
+	public HTMLPanel markdown2Html(String markdown, String suffix, String clientHostString) {
 		String originalMarkdown = markdown;
-		if (markdown == null || markdown.equals("")) return new HTML();
+		if (markdown == null || markdown.equals("")) return new HTMLPanel("");
 		markdown = gtProtector.replace(markdown, "&gt;");
 		markdown = ltProtector.replace(markdown, "&lt;");
 		markdown = SafeHtmlUtils.htmlEscapeAllowEntities(markdown);
@@ -127,7 +127,7 @@ public class SynapseMarkdownProcessor {
 		String html = processMarkdown(markdown, allElementParsers, suffix, clientHostString);
 		if (html == null) {
 			//if the markdown processor fails to convert the md to html (will return null in this case), return the raw markdown instead. (as ugly as it might be, it's better than no information).
-			return new HTML(SafeHtmlUtils.htmlEscape(originalMarkdown)); 
+			return new HTMLPanel(SafeHtmlUtils.htmlEscape(originalMarkdown)); 
 		}
 		//URLs are automatically resolved from the markdown processor
 		return postProcessHtml(html);
@@ -236,7 +236,7 @@ public class SynapseMarkdownProcessor {
 	 * @param markdown
 	 * @return
 	 */
-	public Widget postProcessHtml(String html) {
+	public HTMLPanel postProcessHtml(String html) {
 		Document doc = Document.get();
 		HTMLPanel htmlPanel = new HTMLPanel(html);
 		htmlPanel.addStyleName("markdown");
