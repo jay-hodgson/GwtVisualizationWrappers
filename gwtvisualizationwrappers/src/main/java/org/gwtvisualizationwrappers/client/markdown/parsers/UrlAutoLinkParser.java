@@ -7,11 +7,12 @@ import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
 
 public class UrlAutoLinkParser extends BasicMarkdownElementParser {
-	RegExp p = RegExp.compile(MarkdownRegExConstants.LINK_URL);
+	RegExp p = RegExp.compile(MarkdownRegExConstants.LINK_URL, MarkdownRegExConstants.GLOBAL);
 	MarkdownExtractor extractor;
 
 	@Override
@@ -25,20 +26,25 @@ public class UrlAutoLinkParser extends BasicMarkdownElementParser {
 	
 	@Override
 	public void processLine(MarkdownElements line) {
-		Matcher m = p.matcher(line.getMarkdown());
+		p.setLastIndex(0);
+		String md = line.getMarkdown();
+		MatchResult m = p.exec(md);
 		StringBuffer sb = new StringBuffer();
-		while(m.find()) {
-			String url = m.group(1).trim();
+		int index = 0;
+		while(m != null) {
+			sb.append(md.substring(index, m.getIndex()));
+			index = ServerMarkdownUtils.indexAfterMatch(m);
+			String url = m.getGroup(1).trim();
 			StringBuilder html = new StringBuilder();
 			html.append(ServerMarkdownUtils.getStartLink(getClientHostString(), url));
 			html.append(url + "\">");
 			html.append(url + ServerMarkdownUtils.END_LINK);
 			extractor.putContainerIdToContent(getCurrentDivID(), html.toString());
-			
 			String containerElement = extractor.getNewElementStart(getCurrentDivID()) + extractor.getContainerElementEnd();
-			m.appendReplacement(sb, containerElement);
+			sb.append(containerElement);
+			m = p.exec(line.getMarkdown());
 		}
-		m.appendTail(sb);
+		sb.append(md.substring(index));
 		line.updateMarkdown(sb.toString());
 	}
 

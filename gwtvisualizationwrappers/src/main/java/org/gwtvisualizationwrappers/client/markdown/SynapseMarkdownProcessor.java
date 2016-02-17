@@ -3,8 +3,8 @@ package org.gwtvisualizationwrappers.client.markdown;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
+import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.parsers.BlockQuoteParser;
 import org.gwtvisualizationwrappers.client.markdown.parsers.BoldParser;
 import org.gwtvisualizationwrappers.client.markdown.parsers.BookmarkTargetParser;
@@ -38,6 +38,7 @@ import org.gwtvisualizationwrappers.client.markdown.parsers.UrlAutoLinkParser;
 import org.gwtvisualizationwrappers.client.markdown.utils.ServerMarkdownUtils;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HTMLPanel;
@@ -47,7 +48,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class SynapseMarkdownProcessor {
 	private static SynapseMarkdownProcessor singleton = null;
 	private List<MarkdownElementParser> allElementParsers = new ArrayList<MarkdownElementParser>();
-	private Pattern blockquotePatternProtector, gtProtector, ltProtector;
+	private RegExp blockquotePatternProtector, gtProtector, ltProtector;
 	private CodeParser codeParser;
 	private MathParser mathParser;
 	public static SynapseMarkdownProcessor getInstance() {
@@ -99,9 +100,9 @@ public class SynapseMarkdownProcessor {
 		allElementParsers.add(new SynapseAutoLinkParser());
 		allElementParsers.add(new TableParser());
 		allElementParsers.add(new RowColumnParser());
-		blockquotePatternProtector = Pattern.compile("^&gt;", Pattern.MULTILINE);
-		gtProtector = Pattern.compile(">", Pattern.MULTILINE);
-		ltProtector = Pattern.compile("<", Pattern.MULTILINE);
+		blockquotePatternProtector = RegExp.compile("^&gt;", MarkdownRegExConstants.MULTILINE + MarkdownRegExConstants.GLOBAL);
+		gtProtector = RegExp.compile(">", MarkdownRegExConstants.MULTILINE + MarkdownRegExConstants.GLOBAL);
+		ltProtector = RegExp.compile("<", MarkdownRegExConstants.MULTILINE + MarkdownRegExConstants.GLOBAL);
 	}
 	
 	/**
@@ -118,11 +119,10 @@ public class SynapseMarkdownProcessor {
 	public Widget markdown2Html(String markdown, String suffix, String clientHostString) throws IOException {
 		String originalMarkdown = markdown;
 		if (markdown == null || markdown.equals("")) return new HTML();
-		
-		markdown = gtProtector.matcher(markdown).replaceAll("&gt;");
-		markdown = ltProtector.matcher(markdown).replaceAll("&lt;");
+		markdown = gtProtector.replace(markdown, "&gt;");
+		markdown = ltProtector.replace(markdown, "&lt;");
 		markdown = SafeHtmlUtils.htmlEscapeAllowEntities(markdown);
-		markdown = blockquotePatternProtector.matcher(markdown).replaceAll(">");
+		markdown = blockquotePatternProtector.replace(markdown, ">");
 		
 		String html = processMarkdown(markdown, allElementParsers, suffix, clientHostString);
 		if (html == null) {

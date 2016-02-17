@@ -1,23 +1,20 @@
 package org.gwtvisualizationwrappers.client.markdown.parsers;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
+
+import com.google.gwt.regexp.shared.RegExp;
 
 public abstract class MarkdownList {
 	private int depth;
 	private boolean firstItemCreated;
 	private boolean inCodeBlock;
-	private Pattern p;
+	private RegExp p = RegExp.compile(MarkdownRegExConstants.HTML_FENCE_CODE_BLOCK_REGEX);
 	
 	public MarkdownList(int depth) {
 		super();
 		this.depth = depth;
 		this.firstItemCreated = false;
 		this.inCodeBlock = false;
-		this.p = Pattern.compile(MarkdownRegExConstants.HTML_FENCE_CODE_BLOCK_REGEX, Pattern.DOTALL);
-		
 	}
 	
 	public int getDepth() {
@@ -36,9 +33,9 @@ public abstract class MarkdownList {
 	}
 	
 	public void addExtraElementHtml(MarkdownElements line, String item) {
-		Matcher m = p.matcher(line.getHtml());
+		boolean isMatch = p.test(line.getHtml());
 		//Add other elements under a list item
-		if(m.find()) {
+		if(isMatch) {
 			//If this is a code block, do not modify and update flag
 			line.updateMarkdown(item);
 			inCodeBlock = !inCodeBlock;

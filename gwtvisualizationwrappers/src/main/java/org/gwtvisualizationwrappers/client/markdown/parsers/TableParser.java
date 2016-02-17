@@ -6,6 +6,7 @@ import java.util.List;
 import org.gwtvisualizationwrappers.client.markdown.constants.MarkdownRegExConstants;
 import org.gwtvisualizationwrappers.client.markdown.constants.WidgetConstants;
 
+import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
 public class TableParser extends BasicMarkdownElementParser {
@@ -45,16 +46,16 @@ public class TableParser extends BasicMarkdownElementParser {
 	public void processLine(MarkdownElements line) {
 		String markdown = line.getMarkdown();
 		
-		Matcher startMatcher = start.matcher(markdown);
-		isTableStart = startMatcher.matches();
-		isTableEnd = end.matcher(markdown).matches();
+		MatchResult startMatcher = start.exec(markdown);
+		isTableStart = startMatcher != null;
+		isTableEnd = end.test(markdown);
 		StringBuilder builder = new StringBuilder();
 		
 		if(isTableStart) {
 			hasTags = true;
 			isInTable = true;
 			//Get class styles and start table
-			String styles = startMatcher.group(2);
+			String styles = startMatcher.getGroup(2);
 			if(styles != null && styles.contains("short")) {
 				//Wrap table in a container that will limit height and maintain good format
 				builder.append("<div class=\"markdowntableWrap\">");
@@ -71,7 +72,7 @@ public class TableParser extends BasicMarkdownElementParser {
 		} else {
 			//If we are not in a fenced table, check if this is a normal table
 			if(!hasTags) { 
-				isInTable = p.matcher(markdown).matches();
+				isInTable = p.test(markdown);
 			}
 		
 			if(isInTable) {
@@ -199,8 +200,7 @@ public class TableParser extends BasicMarkdownElementParser {
 	}
 	
 	private boolean isHeaderBorder(String markdown) {
-		Matcher m = headerBorder.matcher(markdown);
-		return m.matches();
+		return headerBorder.test(markdown);
 	}
 	
 	@Override
